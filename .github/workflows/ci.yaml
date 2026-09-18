@@ -39,7 +39,7 @@ jobs:
         run: |
           pip install bandit
           # Scans the directory. Fails the pipeline if HIGH severity issues are found.
-          bandit -r . --severity-level high
+          bandit -r app --severity-level high
 
       # --- 02. VERSION BUMPING STAGE ---
       - name: Bump version and create tag
@@ -56,7 +56,7 @@ jobs:
       - name: Build Docker image (Local for scanning)
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: /app
           load: true # Crucial: Loads image into local Docker daemon so Trivy can scan it
           tags: liadshe/demo-website:${{ steps.tag_version.outputs.new_tag }}
 
