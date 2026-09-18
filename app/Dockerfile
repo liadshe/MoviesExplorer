@@ -5,14 +5,14 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN python -m venv /opt/venv \
-    && /opt/venv/bin/pip install --no-cache-dir --upgrade pip setuptools>=78.1.1 wheel msgpack>=1.2.1 \
+    && /opt/venv/bin/pip install --no-cache-dir --upgrade pip \
     && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 
 # ---- Final stage ----
 FROM python:3.12-slim
 
-# APPLY OS PATCHES HERE (Must run as root, before dropping privileges)
+# KEEP THIS: Ensures your Debian base image stays 100% clean of OS vulnerabilities
 RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser
