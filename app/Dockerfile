@@ -12,6 +12,9 @@ RUN python -m venv /opt/venv \
 # ---- Final stage: minimal runtime image, no build tools, no root ----
 FROM python:3.12-slim
 
+# APPLY OS PATCHES HERE (Must run as root, before dropping privileges)
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+
 RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser
 
 WORKDIR /app
