@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}-config
+  labels:
+    {{- include "demo-website-chart.labels" . | nindent 4 }}
+data:
+  MOVIE_NAME: {{ .Values.appConfig.movieName | quote }}
+  THEME_COLOR: {{ .Values.appConfig.themeColor | quote }}
+  POLL_INTERVAL_SECONDS: {{ .Values.appConfig.pollInterval | quote }}
+  K8S_TOKEN_PATH: "/var/run/secrets/kubernetes.io/serviceaccount/token"
