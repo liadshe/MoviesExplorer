@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN python -m venv /opt/venv \
-    && /opt/venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && /opt/venv/bin/pip install --no-cache-dir --upgrade pip setuptools>=78.1.1 wheel msgpack>=1.2.1 \
     && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 
