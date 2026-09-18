@@ -1,15 +1,15 @@
-# ---- Build stage: install dependencies into a self-contained virtualenv ----
+# ---- Build stage ----
 FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
 COPY requirements.txt .
 RUN python -m venv /opt/venv \
-    && /opt/venv/bin/pip install --no-cache-dir --upgrade pip \
+    && /opt/venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
     && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 
-# ---- Final stage: minimal runtime image, no build tools, no root ----
+# ---- Final stage ----
 FROM python:3.12-slim
 
 # APPLY OS PATCHES HERE (Must run as root, before dropping privileges)
