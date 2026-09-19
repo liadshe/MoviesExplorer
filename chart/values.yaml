@@ -2,7 +2,7 @@ name: demo-website
 image:
   repository: liadshe/demo-website 
   pullPolicy: IfNotPresent
-  tag: "v0.0.1-dev.8"
+  tag: "v0.0.1-dev.9"
 
 imagePullSecrets:
   - name: demo-website-regcred
