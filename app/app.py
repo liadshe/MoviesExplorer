@@ -8,9 +8,9 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 # --- Config from ConfigMap (mounted as env vars) ---
-OMDB_API_URL = os.environ.get("OMDB_API_URL", "https://www.omdbapi.com/")
-THEME_COLOR = os.environ.get("THEME_COLOR", "#1a1a2e")
-POLL_INTERVAL_SECONDS = int(os.environ.get("POLL_INTERVAL_SECONDS", "10"))
+OMDB_API_URL = os.environ.get("OMDB_API_URL")
+THEME_COLOR = os.environ.get("THEME_COLOR")
+POLL_INTERVAL_SECONDS = int(os.environ.get("POLL_INTERVAL_SECONDS"))
 
 # --- Secret 1: external API credential (OMDb) ---
 OMDB_API_KEY = os.environ.get("OMDB_API_KEY")
