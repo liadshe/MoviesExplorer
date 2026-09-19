@@ -6,7 +6,7 @@ image:
 
 imagePullSecrets:
   - name: demo-website-regcred
-  
+
 replicaCount: 1
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
@@ -55,7 +55,7 @@ readinessProbe:
     port: http
 
 appSecret:
-  omdbApiKey: "be3014ea"
+  omdbApiKey: ""
 
 appConfig:
   omdbApiUrl: "http://www.omdbapi.com/"

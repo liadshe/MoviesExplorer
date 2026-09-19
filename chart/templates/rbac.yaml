@@ -25,6 +25,6 @@ roleRef:
   name: {{ .Values.name }}-role
 subjects:
 - kind: ServiceAccount
-  name: {{ .Values.name }}-service-account
+  name: {{ include "demo-website-chart.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 {{- end -}}

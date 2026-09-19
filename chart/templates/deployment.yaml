@@ -15,10 +15,19 @@ spec:
         {{- include "demo-website-chart.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ .Values.name }}-service-account
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: {{ .Values.name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
