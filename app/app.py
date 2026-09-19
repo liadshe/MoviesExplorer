@@ -1,5 +1,5 @@
 import os
-import time
+import random
 import logging
 import requests
 from flask import Flask, jsonify, render_template
@@ -8,7 +8,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 # --- Config from ConfigMap (mounted as env vars) ---
-MOVIE_NAME = os.environ.get("MOVIE_NAME", "Inception")
+OMDB_API_URL = os.environ.get("OMDB_API_URL", "https://www.omdbapi.com/")
 THEME_COLOR = os.environ.get("THEME_COLOR", "#1a1a2e")
 POLL_INTERVAL_SECONDS = int(os.environ.get("POLL_INTERVAL_SECONDS", "10"))
 
@@ -24,32 +24,40 @@ K8S_CA_CERT = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 POD_NAME = os.environ.get("POD_NAME", "unknown")
 POD_NAMESPACE = os.environ.get("POD_NAMESPACE", "default")
 
-_movie_cache = {"data": None, "fetched_at": 0}
-MOVIE_CACHE_TTL = 3600  # seconds — avoid burning OMDb's free-tier quota
+# Cache by title so we don't spam OMDb for the same movie twice
+_movie_cache = {} 
 
+# A curated list of visually striking movies for the randomizer
+MOVIE_LIST = [
+    "Inception", "The Matrix", "Interstellar", "Gladiator",
+    "The Godfather", "Pulp Fiction", "The Dark Knight",
+    "Fight Club", "Forrest Gump", "The Shawshank Redemption",
+    "Jurassic Park", "Back to the Future", "The Avengers",
+    "Spirited Away", "Blade Runner 2049", "Dune"
+]
 
-def fetch_movie():
-    """Fetch movie details from OMDb, with a simple in-memory cache."""
-    now = time.time()
-    if _movie_cache["data"] and (now - _movie_cache["fetched_at"] < MOVIE_CACHE_TTL):
-        return _movie_cache["data"]
+def fetch_random_movie():
+    """Pick a random movie, check cache, or fetch from OMDb."""
+    title = random.choice(MOVIE_LIST)
+
+    # Return instantly if we already fetched this title's poster/data today
+    if title in _movie_cache:
+        return _movie_cache[title]
 
     if not OMDB_API_KEY:
         return {"error": "OMDb API key not configured"}
 
     try:
         resp = requests.get(
-            "https://www.omdbapi.com/",
-            params={"t": MOVIE_NAME, "type": "movie", "apikey": OMDB_API_KEY},
+            OMDB_API_URL,
+            params={"t": title, "type": "movie", "apikey": OMDB_API_KEY},
             timeout=5,
         )
         resp.raise_for_status()
         data = resp.json()
+        
         if data.get("Response") == "False":
-            # OMDb returns Response: False with an Error message (e.g. "Movie not found!")
-            # whenever the title doesn't match anything in its database.
-            error_msg = data.get("Error", "Unknown OMDb error")
-            return {"error": f"'{MOVIE_NAME}': {error_msg}"}
+            return {"error": data.get("Error", "Unknown OMDb error")}
 
         movie = {
             "title": data.get("Title"),
@@ -59,15 +67,14 @@ def fetch_movie():
             "rating": data.get("imdbRating"),
             "genre": data.get("Genre"),
         }
-        _movie_cache["data"] = movie
-        _movie_cache["fetched_at"] = now
+        
+        # Save to cache for future random hits
+        _movie_cache[title] = movie
         return movie
 
     except requests.RequestException as exc:
         logging.warning("OMDb fetch failed: %s", exc)
-        # Fall back to the last good response if we have one, rather than crashing
-        return _movie_cache["data"] or {"error": "Movie data temporarily unavailable"}
-
+        return {"error": "Movie data temporarily unavailable"}
 
 def read_k8s_token():
     try:
@@ -76,7 +83,6 @@ def read_k8s_token():
     except OSError as exc:
         logging.warning("Could not read k8s token: %s", exc)
         return None
-
 
 def fetch_pod_usage():
     """Call the Kubernetes metrics API for this pod's live CPU/memory usage."""
@@ -104,37 +110,29 @@ def fetch_pod_usage():
         logging.warning("metrics-server call failed: %s", exc)
         return {"error": "Usage data unavailable (is metrics-server installed?)"}
 
-
 @app.route("/")
 def index():
     return render_template(
         "index.html",
         theme_color=THEME_COLOR,
         poll_interval=POLL_INTERVAL_SECONDS,
-        movie=fetch_movie(),
+        movie=fetch_random_movie(),
     )
-
 
 @app.route("/api/usage")
 def api_usage():
     return jsonify(fetch_pod_usage())
 
-
 @app.route("/healthz")
 def healthz():
-    # Liveness: is the process alive and serving requests at all.
     return "ok", 200
-
 
 @app.route("/readyz")
 def readyz():
-    # Readiness: did we actually load our config? Deliberately does NOT check
-    # OMDb reachability — an external dependency being flaky shouldn't pull
-    # this pod out of the Service's endpoint list.
-    if MOVIE_NAME and THEME_COLOR:
+    # Updated to check for the URL instead of MOVIE_NAME
+    if OMDB_API_URL and THEME_COLOR:
         return "ready", 200
     return "not ready: missing config", 503
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

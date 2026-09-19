@@ -22,6 +22,7 @@
       width: 100%;
       margin-bottom: 24px;
       box-sizing: border-box;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     .poster {
       max-width: 140px;
@@ -39,6 +40,23 @@
     }
     .error { color: #ff8a80; font-size: 14px; }
     .clearfix::after { content: ""; display: table; clear: both; }
+    
+    /* New Button Style */
+    .random-btn {
+      background-color: #f5c518;
+      color: #121212;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 16px;
+      transition: background-color 0.2s;
+    }
+    .random-btn:hover {
+      background-color: #e0b314;
+    }
   </style>
 </head>
 <body>
@@ -47,11 +65,20 @@
     {% if movie.error %}
       <p class="error">{{ movie.error }}</p>
     {% else %}
-      <img class="poster" src="{{ movie.poster }}" alt="{{ movie.title }} poster">
+      
+      <!-- Prevent broken image icons if OMDb returns 'N/A' -->
+      {% if movie.poster and movie.poster != 'N/A' %}
+        <img class="poster" src="{{ movie.poster }}" alt="{{ movie.title }} poster">
+      {% endif %}
+      
       <h1>{{ movie.title }} ({{ movie.year }})</h1>
       <p class="rating">IMDb {{ movie.rating }}/10</p>
       <p>{{ movie.genre }}</p>
       <p>{{ movie.plot }}</p>
+      
+      <!-- Interactive shuffle button -->
+      <button class="random-btn" onclick="window.location.reload()">🎲 Shuffle Movie</button>
+      
     {% endif %}
   </div>
 

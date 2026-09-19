@@ -33,24 +33,6 @@ ingress:
           pathType: ImplementationSpecific
   tls: []
    
-httpRoute:
-  # HTTPRoute enabled.
-  enabled: false
-  annotations: {}
-  parentRefs:
-  - name: gateway
-    sectionName: http
-    # namespace: default
-  # Hostnames matching HTTP header.
-  hostnames:
-  - chart-example.local
-  # List of rules and filters applied.
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /headers
-
 resources:
   limits:
     cpu: 250m
@@ -73,6 +55,6 @@ appSecret:
   omdbApiKey: "be3014ea"
 
 appConfig:
-  movieName: "The Matrix"
+  omdbApiUrl: "http://www.omdbapi.com/"
   themeColor: "#1a1a2e"
-  pollInterval: "5"
+  pollInterval: 10
