@@ -3,7 +3,6 @@ image:
   repository: liadshe/demo-website 
   pullPolicy: IfNotPresent
   tag: "v0.0.1-dev.10"
-
 imagePullSecrets:
   - name: demo-website-regcred
 
