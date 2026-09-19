@@ -30,7 +30,7 @@ ingress:
   className: "nginx"
   annotations: {}
   hosts:
-    - host: localhost
+    - host: movies-explorer.local
       paths:
         - path: /
           pathType: ImplementationSpecific
