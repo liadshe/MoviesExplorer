@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "demo-website-chart.labels" . | nindent 4 }}
 data:
-  MOVIE_NAME: {{ .Values.appConfig.movieName | quote }}
+  OMDB_API_URL: {{ .Values.appConfig.omdbApiUrl | quote }}
   THEME_COLOR: {{ .Values.appConfig.themeColor | quote }}
   POLL_INTERVAL_SECONDS: {{ .Values.appConfig.pollInterval | quote }}
   K8S_TOKEN_PATH: "/var/run/secrets/kubernetes.io/serviceaccount/token"
