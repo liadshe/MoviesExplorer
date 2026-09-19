@@ -4,6 +4,9 @@ image:
   pullPolicy: IfNotPresent
   tag: "v0.0.1-dev.7"
 
+imagePullSecrets:
+  - name: demo-website-regcred
+  
 replicaCount: 1
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
