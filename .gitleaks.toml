@@ -1,0 +1,7 @@
+[extend]
+useDefault = true
+
+[allowlist]
+paths = [
+    '''chart/templates/sealed-secret\.yaml'''
+]
