@@ -8,6 +8,7 @@ on:
     paths-ignore:
       - 'chart/**'
       - 'README.md'
+  workflow_dispatch:
 
 # Define variables once to avoid hardcoding throughout the pipeline
 env:
