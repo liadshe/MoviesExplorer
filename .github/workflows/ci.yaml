@@ -40,15 +40,13 @@ jobs:
           pip install bandit
           bandit -r app --severity-level high
 
-  # JOB 2: Build, Scan & Push
+# JOB 2: Version, Commit, Build & Push
   build-scan-push:
-    name: Build & Container Security
+    name: Version, Build & Container Security
     needs: security-scans
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    outputs:
-      new_tag: ${{ steps.tag_version.outputs.new_tag }}
     
     steps:
       - name: Checkout repository
@@ -56,12 +54,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Bump version and create tag
+      # 1. Calculate the next version but DO NOT tag it yet
+      - name: Calculate next version
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: patch
+          dry_run: true 
+
+      # 2. Update values.yaml, commit, and push FIRST
+      - name: Update Helm values and commit
+        run: |
+          sed -i "s/tag: .*/tag: \"${{ steps.tag_version.outputs.new_tag }}\"/g" ${{ env.CHART_DIR }}/values.yaml         
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add ${{ env.CHART_DIR }}/values.yaml
+          git commit -m "chore: update image tag to ${{ steps.tag_version.outputs.new_tag }} [skip ci]"
+          git push
+
+      # 3. Create the actual Git tag strictly on the new commit
+      - name: Create and push Git tag
+        run: |
+          git tag ${{ steps.tag_version.outputs.new_tag }}
+          git push origin ${{ steps.tag_version.outputs.new_tag }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -96,23 +112,3 @@ jobs:
           docker push ${{ env.IMAGE_NAME }}:${{ steps.tag_version.outputs.new_tag }}
           docker tag ${{ env.IMAGE_NAME }}:${{ steps.tag_version.outputs.new_tag }} ${{ env.IMAGE_NAME }}:latest
           docker push ${{ env.IMAGE_NAME }}:latest
-
-  # JOB 3: Manifest Update
-  update-gitops-repo:
-    name: Trigger GitOps Sync
-    needs: build-scan-push
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Update Helm values with new image tag
-        run: |
-          sed -i "s/tag: .*/tag: \"${{ needs.build-scan-push.outputs.new_tag }}\"/g" ${{ env.CHART_DIR }}/values.yaml         
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add ${{ env.CHART_DIR }}/values.yaml
-          git commit -m "chore: update image tag to ${{ needs.build-scan-push.outputs.new_tag }} [skip ci]"
-          git push
