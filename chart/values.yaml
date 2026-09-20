@@ -1,0 +1,62 @@
+name: demo-website
+image:
+  repository: liadshe/demo-website 
+  pullPolicy: IfNotPresent
+  tag: "v0.0.1-dev.13"
+imagePullSecrets:
+  - name: demo-website-regcred
+
+replicaCount: 1
+
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account.
+  annotations: {}
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080 
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: movies-explorer.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+   
+resources:
+  limits:
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+
+appSecret:
+  omdbApiKey: ""
+
+appConfig:
+  omdbApiUrl: "http://www.omdbapi.com/"
+  themeColor: "#1a1a2e"
+  pollInterval: 10
